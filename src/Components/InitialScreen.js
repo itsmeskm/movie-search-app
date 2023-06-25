@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import Spinner from './Spinner';
 
 const InitialScreen = () => {
 
@@ -6,26 +7,50 @@ const InitialScreen = () => {
   const [pageNumber,setPageNumber] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOptions, setSearchOptions] = useState('');
-  
+  const [history,setHistory] = useState([]);
+  const [loading,setLoading] = useState(false);
+
   useEffect(() => {
     const fetchMoviesList = async () => {
+        setLoading(true);
         const url = `https://api.themoviedb.org/3/movie/upcoming?api_key=81f382d33088c6d52099a62eab51d967&language=en-US&page=${pageNumber}`;
         const response = await fetch(url);
         const data = await response.json();
         const {results} = data;
         setMovies(results);
-        console.log(results); 
+        setLoading(false); 
     }
     fetchMoviesList();
   },[pageNumber]);
 
   const handleChange = (e) => {
     setSearchQuery(e.target.value);
+    let temp_Arr = history;
+    if(temp_Arr.length === 3){
+        temp_Arr.shift();
+    }
+    temp_Arr.push(
+        {
+            title:e.target.value,
+            language:searchOptions
+        }
+    )
+    setHistory(temp_Arr);
   }
   const handleOptionChange = (e) => {
-    console.log(e.target.value,"opsadc")
     if(e.target.value==="Choose...") setSearchOptions("");
     else setSearchOptions(e.target.value);
+    let temp_Arr = history;
+    if(temp_Arr.length === 3){
+        temp_Arr.shift();
+    }
+    temp_Arr.push(
+        { 
+            title:searchQuery,
+            language:e.target.value
+        }
+    )
+    setHistory(temp_Arr);
   }
 
     const modifyMovies = (movie) => {
@@ -45,20 +70,28 @@ const InitialScreen = () => {
   const filteredData = movies.filter(modifyMovies)
 
   const handleClick = (props) => {
-    console.log(props,"propswsfvdafv");
     setPageNumber(props);
   }
   const handlePrev = (props) => {
-    console.log(props,"prev");
     setPageNumber(props-1);
   }
   const handleNext = (props) => {
-    console.log(props,"next");
     setPageNumber(props+1);
+  }
+
+  const handleDelete = (props) => {
+    let temp_Arr = history;
+    temp_Arr = temp_Arr.filter((item,index) => index!==props);
+    setHistory(temp_Arr);
+  }
+
+  const handleDeleteAll = () => {
+    setHistory([]);
   }
 
   return (
     <div className='mt-2'>
+      {loading && <Spinner />}
       <div className="row mb-4">
         <div className="col-md-8">
             <input type="text" className="form-control" placeholder='title' id="title" value={searchQuery} onChange={handleChange}/>
@@ -83,26 +116,58 @@ const InitialScreen = () => {
             </select>
         </div>
       </div>
-      <table className="table">
-        <thead>
-            <tr>
-            <th scope="col">S.No</th>
-            <th scope="col">Original_title</th>
-            <th scope="col">Original_language</th>
-            <th scope="col">Vote_count</th>
-            </tr>
-        </thead>
-        <tbody>
-            {filteredData.map((movie, index) => (  
-                <tr data-index={index} key={index}>  
-                    <th scope="row">{index+1}</th>
-                    <td>{movie.original_title}</td>  
-                    <td>{movie.original_language}</td> 
-                    <td>{movie.vote_count}</td> 
-                </tr>  
-                ))}  
-        </tbody>
-      </table>
+      <div className='my-4'>
+        <div className='my-4'>
+            <div className="my-4 fw-bold fs-3 text-dark d-flex justify-content-start">
+                Search History
+            </div>
+            <table className="table">
+            <thead>
+                <tr>
+                    <th scope="col">S.No</th>
+                    <th scope="col">Title/language</th>
+                    <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {history.map((hist,index) => (
+                    <tr data-index={index} key={index}>  
+                        <th scope="row">{index+1}</th>
+                        <td>{hist.title}   /   {hist.language}</td>   
+                        <td>
+                            <button className='btn btn-outline-primary' onClick={() => handleDelete(index)}>Delete</button>
+                        </td> 
+                    </tr>   
+                ))}
+            </tbody>
+            </table>
+        </div>
+      {history.length>0 && <div className='d-flex justify-content-end'>
+        <button onClick={handleDeleteAll} className='btn btn-outline-info'>Delete Search History</button>
+      </div>}
+      </div>
+      <div className='my-4'>
+        <table className="table">
+            <thead>
+                <tr>
+                <th scope="col">S.No</th>
+                <th scope="col">Original_title</th>
+                <th scope="col">Original_language</th>
+                <th scope="col">Vote_count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {!loading && filteredData.map((movie, index) => (  
+                    <tr data-index={index} key={index}>  
+                        <th scope="row">{index+1}</th>
+                        <td>{movie.original_title}</td>  
+                        <td>{movie.original_language}</td> 
+                        <td>{movie.vote_count}</td> 
+                    </tr>  
+                    ))}  
+            </tbody>
+        </table>
+     </div>
       <div className='mt-3 d-flex justify-content-end'>
         <button onClick={() => handlePrev(pageNumber)} className="btn p-2">&#8249;</button>
         <div className="p-2">Page</div>
