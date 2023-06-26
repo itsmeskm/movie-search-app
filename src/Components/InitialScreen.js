@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import Spinner from './Spinner';
+import MovieList from './MovieList';
 
 const InitialScreen = () => {
 
@@ -73,6 +74,7 @@ const InitialScreen = () => {
     setPageNumber(props);
   }
   const handlePrev = (props) => {
+    if(props>=2)
     setPageNumber(props-1);
   }
   const handleNext = (props) => {
@@ -116,7 +118,7 @@ const InitialScreen = () => {
             </select>
         </div>
       </div>
-      <div className='my-4'>
+      {history.length>0 && <div className='my-4'>
         <div className='my-4'>
             <div className="my-4 fw-bold fs-3 text-dark d-flex justify-content-start">
                 Search History
@@ -142,32 +144,19 @@ const InitialScreen = () => {
             </tbody>
             </table>
         </div>
-      {history.length>0 && <div className='d-flex justify-content-end'>
+      <div className='d-flex justify-content-end'>
         <button onClick={handleDeleteAll} className='btn btn-outline-info'>Delete Search History</button>
-      </div>}
       </div>
-      <div className='my-4'>
-        <table className="table">
-            <thead>
-                <tr>
-                <th scope="col">S.No</th>
-                <th scope="col">Original_title</th>
-                <th scope="col">Original_language</th>
-                <th scope="col">Vote_count</th>
-                </tr>
-            </thead>
-            <tbody>
-                {!loading && filteredData.map((movie, index) => (  
-                    <tr data-index={index} key={index}>  
-                        <th scope="row">{index+1}</th>
-                        <td>{movie.original_title}</td>  
-                        <td>{movie.original_language}</td> 
-                        <td>{movie.vote_count}</td> 
-                    </tr>  
-                    ))}  
-            </tbody>
-        </table>
-     </div>
+      </div>}
+      <div className="row">
+          {!loading && filteredData.map((movie,index) => {
+              return (
+                  <div className="col-md-4" key={index}>
+                      <MovieList title={movie.original_title} language={movie.original_language} vote={movie.vote_count} desc = {movie.overview}/>
+                  </div>
+              )
+          })}
+      </div>
       <div className='mt-3 d-flex justify-content-end'>
         <button onClick={() => handlePrev(pageNumber)} className="btn p-2">&#8249;</button>
         <div className="p-2">Page</div>
